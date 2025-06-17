@@ -1,0 +1,22 @@
+version: '3.8' # กำหนดเวอร์ชันของ Docker Compose
+
+services:
+  db:
+    image: ankane/pgvector:latest # ใช้ Docker Image ที่มี PostgreSQL และ pgvector ติดตั้งมาให้แล้ว
+    restart: always                # ตั้งค่าให้ Container รีสตาร์ทอัตโนมัติหากหยุดทำงาน
+    environment:
+      POSTGRES_DB: mydatabase      # กำหนดชื่อฐานข้อมูล
+      POSTGRES_USER: myuser        # กำหนดชื่อผู้ใช้งานฐานข้อมูล
+      POSTGRES_PASSWORD: mypassword # กำหนดรหัสผ่านสำหรับผู้ใช้งานฐานข้อมูล
+    ports:
+      - "5432:5432" # แมปพอร์ต: เชื่อมพอร์ต 5432 บนเครื่องโฮสต์ของคุณเข้ากับพอร์ต 5432 ใน Container
+
+    volumes:
+      # เมาท์ไฟล์ init.sql จากเครื่องโฮสต์เข้าไปในโฟลเดอร์เริ่มต้นของ PostgreSQL Container
+      # Docker จะรันไฟล์ .sql ทั้งหมดในโฟลเดอร์นี้เมื่อ Container เริ่มต้นครั้งแรก
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      # Volume สำหรับเก็บข้อมูลฐานข้อมูลแบบถาวร เพื่อให้ข้อมูลไม่หายไปเมื่อ Container ถูกหยุดหรือลบ
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata: # กำหนดชื่อ Docker Volume เพื่อให้ Docker จัดการการเก็บข้อมูลให้
