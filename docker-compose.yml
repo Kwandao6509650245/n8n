@@ -49,7 +49,6 @@ services:
 
 # Define the named volumes used by the services.
 volumes:
-  # Declare the ollama_data volume. Docker will manage its creation if it doesn't exist.
   ollama_data:
   pgdata: # กำหนดชื่อ Docker Volume เพื่อให้ Docker จัดการการเก็บข้อมูลให้
     # Optional: You can specify an external volume if you have one pre-configured,
