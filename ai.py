@@ -139,7 +139,7 @@ url = "http://localhost:11434/api/embed"
 #         conn.commit()
 
 
-content = "ขอแก้ไขอีเมล"
+content = "รีเซ็ตรหัสผ่าน"
 payload = {
         "model": "mxbai-embed-large",
         "input": content
@@ -147,21 +147,30 @@ payload = {
         # print(payload)
 response = requests.post(url, json=payload)
 embedding_data = response.json()
-print(embedding_data['embeddings'][0])
 # print(embedding_data)
+# print(embedding_data['embeddings'][0])
 
-limit=5
+limit=1
 cur.execute("""
-SELECT content, embedding <-> %s AS distance
+SELECT content, embedding <-> %s::vector AS distance
 FROM documents
 ORDER BY distance
 LIMIT %s
     """, (embedding_data['embeddings'][0], limit))
 result = cur.fetchall()
 
-print(f"Search results for: '{result}'")
-for i, (content, distance) in enumerate(result, 1):
-    print(f"{i}. {content} (Distance: {distance:.4f})")
+if result:
+    # เนื่องจาก limit เป็น 1 เราสามารถเข้าถึง result[0] ได้โดยตรง
+    closest_content, closest_distance = result[0]
+    print(f"\nผลลัพธ์ที่ใกล้เคียงที่สุดสำหรับ '{content}':")
+    print(f"เนื้อหา: {closest_content}")
+    print(f"ระยะทางความเหมือน (ยิ่งน้อยยิ่งเหมือน): {closest_distance:.4f}")
+else:
+    print(f"\nไม่พบผลลัพธ์ใดๆ ที่ใกล้เคียงสำหรับ '{content}'")
+
+# print(f"Search results for: '{result}'")
+# for i, (content, distance) in enumerate(result, 1):
+#     print(f"{i}. {content} (Distance: {distance:.4f})")
 
 
     # print(payload)

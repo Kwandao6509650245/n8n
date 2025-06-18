@@ -1,6 +1,6 @@
 -- เปิดใช้งาน Extension สำหรับ Vector Search (pgvector)
 -- ถ้ายังไม่ได้ติดตั้ง pgvector บนเครื่องคุณ คุณต้องติดตั้งก่อน
-CREATE EXTENSION
+CREATE EXTENSION vector;
 IF NOT EXISTS vector;
 
 -- สร้างตาราง 'documents' เพื่อเก็บข้อความและ Embedding
