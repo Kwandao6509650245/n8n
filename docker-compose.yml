@@ -17,6 +17,42 @@ services:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
       # Volume สำหรับเก็บข้อมูลฐานข้อมูลแบบถาวร เพื่อให้ข้อมูลไม่หายไปเมื่อ Container ถูกหยุดหรือลบ
       - pgdata:/var/lib/postgresql/data
+  ollama:
+    # Use the official Ollama Docker image from Docker Hub.
+    # The 'latest' tag will pull the most recent stable version.
+    image: ollama/ollama:latest
+    # Set the container name for easier identification and management.
+    container_name: ollama
+    # Map port 11434 from the container to port 11434 on the host machine.
+    # This is the default port Ollama uses for its API.
+    ports:
+      - "11434:11434"
+    # Mount a named volume to persist Ollama's data (models, configurations).
+    # This ensures that your downloaded models are not lost if the container is removed.
+    volumes:
+      - ./init-ollama.sh:/usr/local/bin/init-ollama.sh
+      - ollama_data:/root/.ollama
+    # Set the restart policy. 'unless-stopped' means the container will
+    # restart automatically unless it's explicitly stopped by the user.
+    entrypoint: ["/bin/bash", "/usr/local/bin/init-ollama.sh"]
+    restart: unless-stopped
+    # Optional: Configure GPU access for better performance if you have a compatible GPU.
+    # Uncomment the 'deploy' section if you want to enable GPU support.
+    # Requires NVIDIA Docker Runtime or similar setup on your host.
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all # Use 'all' for all GPUs, or specify device IDs (e.g., '0')
+    #           capabilities: [gpu] # Request GPU capabilities
 
+# Define the named volumes used by the services.
 volumes:
+  # Declare the ollama_data volume. Docker will manage its creation if it doesn't exist.
+  ollama_data:
   pgdata: # กำหนดชื่อ Docker Volume เพื่อให้ Docker จัดการการเก็บข้อมูลให้
+    # Optional: You can specify an external volume if you have one pre-configured,
+    # but for most cases, leaving it empty allows Docker to manage it automatically.
+    # external: true
+  
