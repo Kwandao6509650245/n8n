@@ -383,10 +383,18 @@ vector_store = PGVector.from_documents(
     connection=DATABASE_URL,
 )
 
-new_docs = [
-    Document(page_content="Machine learning is a subset of AI.", metadata={"source": "wiki"}),
-    Document(page_content="PostgreSQL supports vector indexing.", metadata={"source": "docs"}),
-]
+
+# new_docs = []
+# for item in data:
+#     keywords_list = item["keywords"]
+#     response_text = item["response"]
+#     for keyword in keywords_list:
+#         new_docs.append(Document(page_content=keyword, metadata={response_text}))
+
+# new_docs = [
+#     Document(page_content="Machine learning is a subset of AI.", metadata={"source": "wiki"}),
+#     Document(page_content="PostgreSQL supports vector indexing.", metadata={"source": "docs"}),
+# ]
 results = vector_store.similarity_search("What is LangChain?", k=3)
 vector_store.add_documents(new_docs)
 

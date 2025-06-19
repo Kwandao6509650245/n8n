@@ -13,7 +13,7 @@ embeddings = OllamaEmbeddings(model="mxbai-embed-large", base_url="http://localh
 DB_USER = "myuser"
 DB_PASSWORD = "mypassword"
 DB_HOST = "localhost"
-DB_PORT = "5432"
+DB_PORT = "5433"
 DB_NAME = "mydatabase"
 CONNECTION_STRING = f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 # COLLECTION_NAME = "my_ollama_documents_collection"
@@ -89,34 +89,66 @@ from sqlalchemy import create_engine
 
 from langchain_core.prompts import ChatPromptTemplate # เพิ่ม
 
-engine = create_engine("postgresql+psycopg2://myuser:mypassword@localhost:5432/mydatabase")
+engine = create_engine("postgresql+psycopg2://myuser:mypassword@localhost:5433/mydatabase")
 
 
 vectorstore = PGVector(
     connection=engine,
     embeddings=embeddings,
-    collection_name='test',
+    collection_name='my_docs',
     # pre_delete_collection=True # ตั้งค่าเป็น True ถ้าต้องการลบข้อมูลเก่าใน collection ก่อนเพิ่มใหม่
 )
 
-retriever = vectorstore.as_retriever(search_kwargs={"k": 1}) 
+csv_file_path = "my_doc.csv" # ตรวจสอบพาธของไฟล์ CSV ของคุณ
 
-query_text = "ขอเปลี่ยนรหัสผ่าน" # คำถามที่คุณต้องการใช้ค้นหา
+try:
+    df = pd.read_csv(csv_file_path, encoding='utf-8')
+except FileNotFoundError:
+    print(f"Error: File not found at {csv_file_path}")
+    exit()
+
+docs = []
+# กำหนดชื่อคอลัมน์ที่เป็นเนื้อหาหลักที่คุณต้องการให้ AI ใช้ค้นหา
+# *** ต้องตรงกับชื่อคอลัมน์ในไฟล์ CSV ของคุณเป๊ะๆ ***
+content_column = 'คำถาม' 
+
+for index, row in df.iterrows():
+    # ตรวจสอบว่าคอลัมน์เนื้อหาหลักไม่ว่าง
+    if pd.isna(row[content_column]):
+        continue # ข้ามแถวที่ไม่มีเนื้อหาหลัก
+
+    page_content = str(row[content_column])
+    
+    # สร้าง metadata จากคอลัมน์อื่นๆ ทั้งหมด ยกเว้นคอลัมน์เนื้อหาหลัก
+    # ในกรณีนี้ 'คำตอบ' จะถูกเก็บใน metadata ของเอกสาร
+    metadata = row.drop(content_column).to_dict() 
+
+    docs.append(Document(page_content=page_content, metadata=metadata))
+
+print(f"Loaded {len(docs)} documents from CSV.")
+
+# --- 4. สร้าง Vector Store และบันทึกข้อมูลลง PostgreSQL ---
+print("Connecting to PGVector store and adding documents...")
+# 'pre_delete_collection=True' จะลบ collection เก่าก่อนเพิ่มใหม่เสมอ
+# vectorstore = PGVector.from_documents(
+#     documents=docs,
+#     embedding=embeddings,
+#     collection_name='test',
+#     connection=engine,
+#     pre_delete_collection=True # ตั้งค่าเป็น True ถ้าต้องการลบข้อมูลเก่าใน collection ก่อนเพิ่มใหม่
+# )
+# print(f"Documents added to PostgreSQL in collection '{test}'.")
+
+retriever = vectorstore.as_retriever(search_kwargs={"k": 2}) 
+
+query_text = "Do I need to use the email-provided password before setting a new one?"
 retrieved_documents = retriever.invoke(query_text)
 
 print(f"\n--- Retrieved Documents for query: '{query_text}' ---")
 if retrieved_documents:
     # แสดงเนื้อหาของเอกสารที่ถูกดึงมา (ซึ่งตอนนี้คือ 'ประโยคขอแก้ไขข้อมูลอีเมล')
-    print(f"Content (จากคอลัมน์ 'คำถาม'): {retrieved_documents[0].page_content}")
-    
-    # แสดง metadata ซึ่งจะรวมถึงคอลัมน์ 'คำตอบ' ที่เราต้องการดู
-    print(f"Metadata (รวมถึง 'คำตอบ'): {retrieved_documents[0].metadata}")
-    
-    # แสดง 'คำตอบ' ที่ตรงกันจาก metadata โดยตรง
-    if 'คำตอบ' in retrieved_documents[0].metadata:
-        print(f"**คำตอบที่เกี่ยวข้อง:** {retrieved_documents[0].metadata['คำตอบ']}")
-    else:
-        print("ไม่พบคอลัมน์ 'คำตอบ' ใน metadata ของเอกสารที่ดึงมา")
+    print(f"Content : {retrieved_documents[0].page_content}")
+
 else:
     print("ไม่พบเอกสารสำหรับคำถามนี้")
 
