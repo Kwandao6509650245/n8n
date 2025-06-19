@@ -46,9 +46,8 @@ services:
     #         - driver: nvidia
     #           count: all # Use 'all' for all GPUs, or specify device IDs (e.g., '0')
     #           capabilities: [gpu] # Request GPU capabilities
-
-# Define the named volumes used by the services.
 volumes:
+  pgdata_test:
   ollama_data:
   pgdata: # กำหนดชื่อ Docker Volume เพื่อให้ Docker จัดการการเก็บข้อมูลให้
     # Optional: You can specify an external volume if you have one pre-configured,
