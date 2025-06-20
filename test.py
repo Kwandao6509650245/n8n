@@ -147,7 +147,7 @@ print("Connecting to PGVector store and adding documents...")
 
 retriever = vectorstore.as_retriever(search_kwargs={"k": 2}) 
 
-query_text = "I want to change the contact email to this new one"
+query_text = "Do I need to use the email-provided password before setting a new one?"
 retrieved_documents = retriever.invoke(query_text)
 
 print(f"\n--- Retrieved Documents for query: '{query_text}' ---")

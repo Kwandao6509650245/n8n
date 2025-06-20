@@ -60,9 +60,12 @@ services:
       - N8N_PORT=5678
       - N8N_PROTOCOL=http
       - N8N_SECURE_COOKIE=false
+    volumes:
+      - n8n_data:/home/node/.n8n
 
 
 volumes:
+  n8n_data:
   pgdata_test:
   ollama_data:
   pgdata: # กำหนดชื่อ Docker Volume เพื่อให้ Docker จัดการการเก็บข้อมูลให้
