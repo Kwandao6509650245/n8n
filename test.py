@@ -3,17 +3,46 @@ from langchain_ollama import OllamaLLM, OllamaEmbeddings
 # from langchain_community.vectorstores import PGVector
 from langchain_core.documents import Document
 import pandas as pd
+# import google.genai as genai
+# import google.generativeai as genai
+from langchain_google_genai import ChatGoogleGenerativeAI
 
 from langchain_core.prompts import ChatPromptTemplate # เพิ่ม
 from langchain_core.output_parsers import StrOutputParser # เพิ่ม
 from langchain_core.runnables import RunnablePassthrough # เพิ่ม
 from langchain_ollama import OllamaLLM, OllamaEmbeddings, ChatOllama # เพิ่ม ChatOllama
-
+# from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_core.messages import (
+    AIMessage,
+    HumanMessage,
+    SystemMessage,
+    filter_messages,
+)
 
 # --- 1. กำหนดค่า Ollama ---
 # ใช้ OllamaLLM เมื่อคุณต้องการแค่ดึงข้อความ ไม่ได้ใช้คุณสมบัติ Chat Model เต็มรูปแบบ
-model = OllamaLLM(model="llama3", temperature=0.0, base_url="http://localhost:11434")
-embeddings = OllamaEmbeddings(model="mxbai-embed-large", base_url="http://localhost:11434")
+API_KEY = "AIzaSyB7toq0qn9tEJWoi7woXf2rEb6vjrrZb7g"  # Replace with your actual API key
+# client = genai.Client(api_key=API_KEY)
+# model_name = "gemini-2.0-flash"
+
+model = OllamaLLM(model="llama3", temperature=0.0, base_url="http://192.168.1.53:11434")
+# model = OllamaLLM(model="llama3.2", temperature=0.0, base_url="https://aicenter.mahidol.ac.th/ml")
+
+# custom_base_url=""
+# genai.configure(api_key=API_KEY)
+# model = genai.GenerativeModel(model_name="gemini-2.5-flash-preview-05-20")
+
+# model = ChatGoogleGenerativeAI(
+#     model="gemini-2.5-flash-preview-05-20",
+#     temperature=0,
+#     max_tokens=None,
+#     timeout=None,
+#     max_retries=2,
+#     # other params...
+# )
+
+
+embeddings = OllamaEmbeddings(model="mxbai-embed-large", base_url="http://192.168.1.53:11434")
 
 # --- 2. กำหนดค่าการเชื่อมต่อ PostgreSQL ---
 DB_USER = "myuser"
@@ -27,7 +56,7 @@ CONNECTION_STRING = f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{D
 from langchain_postgres import PGVector
 
 # model = ChatOllama(model="llama3.2", base_url="http://localhost:11434")
-embeddings = OllamaEmbeddings(model="mxbai-embed-large", base_url="http://localhost:11434")
+# embeddings = OllamaEmbeddings(model="mxbai-embed-large", base_url="http://localhost:11434")
 
 
 print(f"Connecting to: {CONNECTION_STRING}")
@@ -214,26 +243,28 @@ prompt = ChatPromptTemplate.from_template(template)
 
 # # 4. Construct the RAG Chain
 
-rag_chain = (
-    {"context": retriever , # Retrieve documents and format them as context
-    "question": RunnablePassthrough()}
-    | prompt
-    | model
-    | StrOutputParser()
-)
+# from operator import itemgetter
+
+# rag_chain = (
+#     {"context": retriever , # Retrieve documents and format them as context
+#     "question": itemgetter("question")}
+#     | prompt
+#     | model
+#     | StrOutputParser()
+# )
 
 
-query_text_rag = "how i change password?" # The question for RAG
-print(f"\n--- Generating Answer with RAG for query: '{query_text_rag}' ---")
-final_answer = rag_chain.invoke(query_text_rag)
+# query_text_rag = "how i change password?" # The question for RAG
+# print(f"\n--- Generating Answer with RAG for query: '{query_text_rag}' ---")
+# final_answer = rag_chain.invoke(query_text_rag)
 
-print(final_answer)
-# --- 5. Use RAG Chain to Get Answer from AI ---
-query_text_rag = "how i change email?" # The question for RAG
-print(f"\n--- Generating Answer with RAG for query: '{query_text_rag}' ---")
-final_answer = rag_chain.invoke(query_text_rag)
+# print(final_answer)
+# # --- 5. Use RAG Chain to Get Answer from AI ---
+# query_text_rag = "how i change email?" # The question for RAG
+# print(f"\n--- Generating Answer with RAG for query: '{query_text_rag}' ---")
+# final_answer = rag_chain.invoke(query_text_rag)
 
-print(final_answer)
+# print(final_answer)
 
 # # print("\nProcess completed.")
 
@@ -254,3 +285,92 @@ print(final_answer)
 #     print("-" * 50) # Separator for readability
 
 # print("\nProcess completed.")
+
+# response = model.invoke("What is the capital of Thailand?")
+# print(response.content)
+
+# from operator import itemgetter
+# from langchain_core.prompts import ChatPromptTemplate
+# from langchain_ollama import ChatOllama
+
+# system_template = "Translate the following from {language} into English"
+
+# llm = ChatOllama(model="llama3", temperature=0.0, base_url="http://192.168.1.53:11434")
+
+# prompt_template = ChatPromptTemplate.from_messages(
+#     [("system", system_template), ("user", "{text}")]
+# )
+
+
+# filter_ = filter_messages(exclude_names=["example_user", "example_assistant"])
+# prompt = prompt_template.invoke({"language": "Thai", "text": "ต้องการรีเซ็ตรหัสผ่าน"})
+# response = model.invoke(prompt)
+
+# system_template = "I want message after translate finish"
+
+# llm = ChatOllama(model="llama3", temperature=0.0, base_url="http://192.168.1.53:11434")
+
+# prompt_template = ChatPromptTemplate.from_messages(
+#     [("system", system_template), ("user", "{text}")]
+# )
+
+
+# filter_ = filter_messages(exclude_names=["example_user", "example_assistant"])
+# prompt = prompt_template.invoke({"language": "Thai", "text": response})
+# response = model.invoke(prompt)
+# print(response)
+
+# result = filter_.invoke(response)
+# print(result)
+# output_parser = StrOutputParser()
+# result = output_parser.invoke(response)
+
+# print(result)
+
+# rag_chain = (
+#     {"context": retriever , # Retrieve documents and format them as context
+#     "question": RunnablePassthrough()}
+#     | prompt
+#     | model
+#     | StrOutputParser()
+# )
+
+# translation_prompt = ChatPromptTemplate.from_template(
+#     "Translate {answer} to {language}"
+# )
+
+# translation_chain = (
+#     {"answer": rag_chain, "language": itemgetter("language")} | translation_prompt | model | StrOutputParser()
+# )
+
+# # input_data = {"language": "Thai", "question": "เปลี่ยนรหัสผ่านยังไง?"}
+# # print(f"\n--- Generating Answer with RAG for query: '{input_data['question']}' ---")
+# # translated_answer = translation_chain.invoke(input_data)
+
+# # print(translated_answer)
+
+# # input_data = {"language": "Thai", "question": "How I change password?"}
+# # print(f"\n--- Generating Answer with RAG for query: '{input_data['question']}' ---")
+# # translated_answer = translation_chain.invoke(input_data)
+
+
+# # input_data = {"language": "Thai", "question": "เปลี่ยนอีเมลล์ยังไง"}
+# # print(f"\n--- Generating Answer with RAG for query: '{input_data['question']}' ---")
+# # translated_answer = translation_chain.invoke(input_data)
+
+# # print(translated_answer)
+
+# test_queries = [
+#     "ต้องการรีเซ็ตรหัสผ่าน",
+#     "How do I change my password for the first time?",
+#     "I want to change the contact email to this new one",
+#     "เปลี่ยนอีเมล์",
+#     # Add more specific queries based on your CSV content
+# ]
+
+# for query_text in test_queries:
+#     input_data = {"language": "Thai", "question": query_text}
+#     print(f"\n--- Generating Answer with RAG for query: '{input_data['question']}' ---")
+#     final_answer = translated_question_chain.invoke(input_data)
+#     print(final_answer)
+#     print("-" * 50) # Separator for readability
