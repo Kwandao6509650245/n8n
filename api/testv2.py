@@ -80,7 +80,7 @@ async def gen_answer(text_input):
     prompt = ChatPromptTemplate.from_template(template)
 
     rag_chain = (
-    {"context":  (lambda x: x["question"]) | retriever , # Retrieve documents and format them as context
+    {"context":  retriever , # Retrieve documents and format them as context
     "question": RunnablePassthrough()}
     | prompt
     | model
@@ -88,11 +88,11 @@ async def gen_answer(text_input):
     )
 
     translation_prompt = ChatPromptTemplate.from_template(
-    "Translate {answer} to {language}"
+    "Translate {answer} to Thai"
     )
 
     translation_chain = (
-    {"answer": rag_chain, "language": itemgetter("language")} | translation_prompt | model | StrOutputParser()
+    {"answer": rag_chain } | translation_prompt | model | StrOutputParser()
     )
 
     test_queries = [
@@ -106,7 +106,7 @@ async def gen_answer(text_input):
     translated_thai_to_english = await run_translation_example(text_input)
     input_data = {"language": "Thai", "question": translated_thai_to_english}
     print(f"\n--- Generating Answer with RAG for query: '{input_data['question']}' ---")
-    translated_answer = translation_chain.invoke(input_data)
+    translated_answer = translation_chain.invoke(translated_thai_to_english)
     print(translated_answer)
     return translated_answer
 
