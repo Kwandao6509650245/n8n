@@ -96,9 +96,10 @@ async def gen_answer(text_input):
     )
 
     test_queries = [
-        "ต้องการรีเซ็ตรหัสผ่าน",
-        "How do I change my password for the first time?",
-        "I want to change the contact email to this new one",
+        "สอบถามวิธ๊การยืนยันตัวตน",
+        "ต้องการตั้งค่ารหัสผ่าน",
+        "สอบถามเกี่ยวกับผลการเรียน",
+        "การเปลี่ยนชื่อโรงเรียนไม่ทราบว่าทำยังไงครับ",
         "เปลี่ยนอีเมล์",
         # Add more specific queries based on your CSV content
     ]
